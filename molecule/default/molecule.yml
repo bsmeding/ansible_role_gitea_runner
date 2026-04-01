@@ -53,3 +53,5 @@ provisioner:
       remote_tmp: "/tmp/.ansible-tmp"
   env:
     ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "True"
+    # Galaxy dependency roles (e.g. bsmeding.docker) and CI checkout layout
+    ANSIBLE_ROLES_PATH: "${HOME}/.ansible/roles:${MOLECULE_PROJECT_DIRECTORY}/.."

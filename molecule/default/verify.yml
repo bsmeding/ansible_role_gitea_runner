@@ -8,6 +8,11 @@
         dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
         extensions: ["yml"]
 
+    - name: Align paths with converge (ephemeral home)
+      ansible.builtin.set_fact:
+        gitea_runner__home: "{{ (lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') | default('/tmp/molecule', true)) ~ '/gitea_runner' }}"
+        gitea_runner__config_file: "{{ (lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') | default('/tmp/molecule', true)) ~ '/gitea_runner/config/config.yaml' }}"
+
     - name: Assert runner config was rendered
       ansible.builtin.stat:
         path: "{{ gitea_runner__config_file }}"

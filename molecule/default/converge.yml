@@ -3,10 +3,15 @@
   hosts: all
   become: true
   vars:
+    # Host paths must be under a bind-mountable workspace (not /opt) for Docker-on-Docker (CI + local Molecule).
+    gitea_runner__home: "{{ (lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') | default('/tmp/molecule', true)) ~ '/gitea_runner' }}"
     gitea_runner__gitea_url: 'https://127.0.0.1:3000'
     gitea_runner__gitea_token: 'molecule-test-token'
     docker_service_manage: false
     docker_add_repo: false
+    # Single user-defined network avoids docker_container network-order idempotence noise in Molecule.
+    gitea_runner__container_networks:
+      - name: gitea_runners
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
