@@ -1,0 +1,16 @@
+---
+- name: restart gitea runner
+  community.docker.docker_container:
+    name: "{{ gitea_runner__name }}"
+    image: "{{ gitea_runner__image }}"
+    state: started
+    restart: true
+    recreate: false
+    restart_policy: unless-stopped
+    network_mode: "{{ gitea_runner__network_mode if (gitea_runner__network_mode is defined and gitea_runner__network_mode != '' and gitea_runner__network_mode != 'default') else omit }}"
+    networks: "{{ gitea_runner__container_networks if (gitea_runner__network_mode is not defined or gitea_runner__network_mode == '' or gitea_runner__network_mode == 'default') else omit }}"
+    env: "{{ (gitea_runner__default_env | default({})) | combine(gitea_runner__env | default({})) }}"
+    volumes: "{{ gitea_runner__directory_volumes + gitea_runner__file_volumes }}"
+    log_driver: "{{ gitea_runner__log_driver }}"
+    log_options: "{{ gitea_runner__log_options | default(omit) }}"
+

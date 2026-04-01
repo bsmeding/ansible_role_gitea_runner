@@ -1,0 +1,54 @@
+---
+gitea_runner__name: gitea_runner
+gitea_runner__image: gitea/act_runner:latest
+gitea_runner__skip_setup: false  # Disable setup stage
+gitea_runner__remove_existing_container: false
+gitea_runner__remove_existing_home_dir: false  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
+gitea_runner__pull_image: true
+
+gitea_runner__network_mode: 'default'
+gitea_runner__network_cidr: ''
+gitea_runner__network: 'gitea_runners'
+gitea_runner__container_networks:
+  - name: bridge
+  - name: "{{ gitea_runner__network }}"
+gitea_runner__purge_networks: false
+gitea_runner__log_driver: json-file
+# gitea_runner__log_options:
+
+gitea_runner__home: "/opt/{{ gitea_runner__name }}"
+gitea_runner__directories:
+  - path: "{{ gitea_runner__home }}"
+    mode: "0760"
+  - path: "{{ gitea_runner__home }}/config"
+    mode: "0770"
+  - path: "{{ gitea_runner__home }}/data"
+    mode: "0770"
+
+gitea_runner__directory_volumes:
+  - "{{ gitea_runner__home }}/config:/config"
+  - "{{ gitea_runner__home }}/data:/data"
+gitea_runner__file_volumes:
+  - "/var/run/docker.sock:/var/run/docker.sock"
+
+# Gitea ACT Runner Configuration
+gitea_runner__gitea_url: ''  # Required: Gitea instance URL (e.g., https://gitea.example.com)
+gitea_runner__gitea_token: ''  # Required: Registration token from Gitea
+gitea_runner__runner_name: "{{ gitea_runner__name }}"
+gitea_runner__runner_labels: []  # List of labels (e.g., ['ubuntu-latest', 'docker'])
+gitea_runner__runner_capacity: 1  # Number of concurrent jobs
+
+# Additional configuration
+gitea_runner__config_file: "{{ gitea_runner__home }}/config/config.yaml"
+gitea_runner__log_level: info  # debug, info, warn, error
+
+gitea_runner__default_env:
+  TZ: "{{ container_time_zone | default('Europe/Paris') }}"
+  PUID: "{{ (docker_uid | default(1040)) | string }}"
+  PGID: "{{ (docker_gid | default(1001)) | string }}"
+  CONFIG_FILE: "/config/config.yaml"
+  GITEA_INSTANCE_URL: "{{ gitea_runner__gitea_url | default('') }}"
+  GITEA_RUNNER_REGISTRATION_TOKEN: "{{ gitea_runner__gitea_token | default('') }}"
+  GITEA_RUNNER_NAME: "{{ gitea_runner__runner_name }}"
+gitea_runner__env: {}
+

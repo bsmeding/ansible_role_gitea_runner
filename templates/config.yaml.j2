@@ -1,0 +1,23 @@
+log:
+  level: {{ gitea_runner__log_level }}
+
+runner:
+  file: /data/.runner
+  name: {{ gitea_runner__runner_name }}
+  capacity: {{ gitea_runner__runner_capacity }}
+{% if gitea_runner__runner_labels | length > 0 %}
+  labels: {{ gitea_runner__runner_labels | to_json }}
+{% endif %}
+
+container:
+  network: bridge
+  docker_host: unix:///var/run/docker.sock
+
+{% if gitea_runner__gitea_url != '' %}
+gitea:
+  url: "{{ gitea_runner__gitea_url }}"
+{% if gitea_runner__gitea_token != '' %}
+  token: "{{ gitea_runner__gitea_token }}"
+{% endif %}
+{% endif %}
+

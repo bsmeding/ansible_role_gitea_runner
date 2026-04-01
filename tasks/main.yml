@@ -1,0 +1,6 @@
+---
+# Run setup
+- name: Include tasks for setup
+  include_tasks: setup.yml
+  when: not gitea_runner__skip_setup | bool
+

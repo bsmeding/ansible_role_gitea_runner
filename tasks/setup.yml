@@ -1,0 +1,82 @@
+---
+- name: Remove existing {{ gitea_runner__name }} container
+  community.docker.docker_container:
+    name: "{{ gitea_runner__name }}"
+    state: absent
+  when: gitea_runner__remove_existing_container
+
+- name: Remove home directory
+  file:
+    state: absent
+    path: "{{ gitea_runner__home }}"
+  when: gitea_runner__remove_existing_home_dir
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item.path }}"
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default(docker_uid | default(1040)) }}"
+    group: "{{ item.group | default(docker_gid | default(1001)) }}"
+  with_items: "{{ gitea_runner__directories }}"
+
+- name: Create a network for gitea runner
+  community.docker.docker_network:
+    name: "{{ gitea_runner__network }}"
+    state: present
+    ipam_config:
+      - subnet: "{{ gitea_runner__network_cidr }}"
+        gateway: "{{ gitea_runner__network_cidr | ansible.utils.ipaddr('next_usable') }}"
+        iprange: "{{ gitea_runner__network_cidr }}"
+  when: gitea_runner__network_cidr is defined and gitea_runner__network_cidr != ''
+  failed_when: false
+
+- name: Generate Gitea ACT Runner configuration file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ gitea_runner__config_file }}"
+    owner: "{{ docker_uid | default(1040) }}"
+    group: "{{ docker_gid | default(1001) }}"
+    mode: '0640'
+  when: gitea_runner__gitea_url != '' and gitea_runner__gitea_token != ''
+  notify: restart gitea runner
+
+- name: Run gitea runner container (with network_mode)
+  community.docker.docker_container:
+    name: "{{ gitea_runner__name }}"
+    image: "{{ gitea_runner__image }}"
+    state: started
+    pull: "{{ gitea_runner__pull_image | default(true) }}"
+    restart_policy: unless-stopped
+    network_mode: "{{ gitea_runner__network_mode }}"
+    env: "{{ gitea_runner__default_env | combine(gitea_runner__env) }}"
+    volumes: "{{ gitea_runner__directory_volumes + gitea_runner__file_volumes }}"
+    log_driver: "{{ gitea_runner__log_driver }}"
+    log_options: "{{ gitea_runner__log_options | default(omit) }}"
+  when: gitea_runner__network_mode is defined and gitea_runner__network_mode != '' and gitea_runner__network_mode != 'default'
+
+- name: Ensure networks exist before container creation
+  community.docker.docker_network:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ gitea_runner__container_networks }}"
+  when:
+    - gitea_runner__network_mode is not defined or gitea_runner__network_mode == '' or gitea_runner__network_mode == 'default'
+    - item.name != 'bridge'  # bridge network always exists
+  failed_when: false
+  changed_when: false
+
+- name: Run gitea runner container (with networks)
+  community.docker.docker_container:
+    name: "{{ gitea_runner__name }}"
+    image: "{{ gitea_runner__image }}"
+    state: started
+    pull: "{{ gitea_runner__pull_image | default(true) }}"
+    restart_policy: unless-stopped
+    networks: "{{ gitea_runner__container_networks }}"
+    env: "{{ gitea_runner__default_env | combine(gitea_runner__env) }}"
+    volumes: "{{ gitea_runner__directory_volumes + gitea_runner__file_volumes }}"
+    log_driver: "{{ gitea_runner__log_driver }}"
+    log_options: "{{ gitea_runner__log_options | default(omit) }}"
+  when: gitea_runner__network_mode is not defined or gitea_runner__network_mode == '' or gitea_runner__network_mode == 'default'
+
