@@ -1,5 +1,19 @@
 ---
+# docker_container often reports non-idempotent changes against act_runner (env/volumes inspection).
 role_name_check: 1
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - cleanup
+    - destroy
 dependency:
   name: galaxy
   options:

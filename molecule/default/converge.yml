@@ -9,9 +9,8 @@
     gitea_runner__gitea_token: 'molecule-test-token'
     docker_service_manage: false
     docker_add_repo: false
-    # Single user-defined network avoids docker_container network-order idempotence noise in Molecule.
-    gitea_runner__container_networks:
-      - name: gitea_runners
+    # Pin image so docker_container does not report change when :latest resolves differently between runs.
+    gitea_runner__image: gitea/act_runner:0.2.11
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
