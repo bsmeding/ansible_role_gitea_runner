@@ -1,0 +1,8 @@
+---
+roles:
+  - name: bsmeding.docker
+collections:
+  - name: community.docker
+    version: "4.8.7"
+  - name: community.general
+  - name: ansible.utils

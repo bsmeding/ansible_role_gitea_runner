@@ -1,0 +1,37 @@
+---
+- name: Converge Gitea ACT runner (Docker)
+  hosts: all
+  become: true
+  vars:
+    gitea_runner__gitea_url: 'https://127.0.0.1:3000'
+    gitea_runner__gitea_token: 'molecule-test-token'
+    docker_service_manage: false
+    docker_add_repo: false
+  pre_tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 600
+      when: ansible_os_family == 'Debian'
+      changed_when: false
+
+    - name: Check if Docker socket exists
+      ansible.builtin.stat:
+        path: /var/run/docker.sock
+      register: docker_socket
+
+    - name: Fail if Docker socket is unavailable
+      ansible.builtin.fail:
+        msg: "Docker socket not available inside Molecule instance."
+      when: not docker_socket.stat.exists
+
+    - name: Ensure Docker socket permissions are usable in CI
+      ansible.builtin.file:
+        path: /var/run/docker.sock
+        mode: '0666'
+      when: docker_socket.stat.exists
+
+  roles:
+    - role: bsmeding.docker
+      when: docker_socket.stat.exists
+    - role: bsmeding.gitea_runner

@@ -1,0 +1,39 @@
+---
+- name: Verify Gitea runner role
+  hosts: all
+  become: true
+  tasks:
+    - name: Include default vars
+      ansible.builtin.include_vars:
+        dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
+        extensions: ["yml"]
+
+    - name: Assert runner config was rendered
+      ansible.builtin.stat:
+        path: "{{ gitea_runner__config_file }}"
+      register: gitea_runner_config_stat
+
+    - name: Ensure config file exists
+      ansible.builtin.assert:
+        that: gitea_runner_config_stat.stat.exists | default(false)
+        fail_msg: "Expected {{ gitea_runner__config_file }} to exist after converge."
+
+    - name: Wait for Gitea runner container to be running
+      community.docker.docker_container_info:
+        name: "{{ gitea_runner__name }}"
+      register: gitea_runner_container
+      retries: 36
+      delay: 10
+      until: >-
+        gitea_runner_container.exists | default(false) and
+        (gitea_runner_container.container.State.Running | default(false))
+      failed_when: false
+
+    - name: Assert Gitea runner container is running
+      ansible.builtin.assert:
+        that:
+          - gitea_runner_container.exists | default(false)
+          - gitea_runner_container.container.State.Running | default(false)
+        fail_msg: >-
+          Gitea runner container {{ gitea_runner__name }} is not running
+          (exists={{ gitea_runner_container.exists | default(false) }}).
