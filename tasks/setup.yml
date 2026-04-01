@@ -79,4 +79,3 @@
     log_driver: "{{ gitea_runner__log_driver }}"
     log_options: "{{ gitea_runner__log_options | default(omit) }}"
   when: gitea_runner__network_mode is not defined or gitea_runner__network_mode == '' or gitea_runner__network_mode == 'default'
-

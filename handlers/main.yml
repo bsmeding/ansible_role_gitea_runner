@@ -13,4 +13,3 @@
     volumes: "{{ gitea_runner__directory_volumes + gitea_runner__file_volumes }}"
     log_driver: "{{ gitea_runner__log_driver }}"
     log_options: "{{ gitea_runner__log_options | default(omit) }}"
-

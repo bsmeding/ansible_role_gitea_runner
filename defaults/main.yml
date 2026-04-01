@@ -51,4 +51,3 @@ gitea_runner__default_env:
   GITEA_RUNNER_REGISTRATION_TOKEN: "{{ gitea_runner__gitea_token | default('') }}"
   GITEA_RUNNER_NAME: "{{ gitea_runner__runner_name }}"
 gitea_runner__env: {}
-
