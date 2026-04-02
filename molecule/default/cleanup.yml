@@ -1,13 +1,12 @@
 ---
-# act_runner writes to bind mounts as PUID/PGID; prune runs as the CI user and must not hit root-owned/foreign UID paths.
-# First cleanup in the sequence runs before create; ignore_unreachable skips when no instance exists yet.
-- name: Cleanup Gitea runner Molecule bind mounts
+# act_runner writes under MOLECULE_EPHEMERAL_DIRECTORY on the *host*; "root" inside the Molecule
+# instance often cannot delete those bind mounts (user namespaces on CI). Stopping the app
+# container on the instance, then removing the tree on localhost with become, fixes prune.
+- name: Stop Gitea runner container on test instance
   hosts: all
   become: true
   gather_facts: false
   ignore_unreachable: true
-  vars:
-    molecule_ephemeral: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') | default('', true) }}"
   tasks:
     - name: Stop gitea runner test container (release bind mounts)
       community.docker.docker_container:
@@ -15,8 +14,16 @@
         state: stopped
       failed_when: false
 
-    - name: Remove bind-mounted runner workspace so Molecule can prune
+- name: Remove bind-mounted workspace on control host (Molecule runner)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    molecule_ephemeral: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') | default('', true) }}"
+  tasks:
+    - name: Remove gitea_runner data from ephemeral dir (host path)
       ansible.builtin.file:
         path: "{{ molecule_ephemeral }}/gitea_runner"
         state: absent
+      become: true
       when: molecule_ephemeral | length > 0
