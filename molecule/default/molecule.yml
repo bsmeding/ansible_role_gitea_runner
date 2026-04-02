@@ -61,6 +61,7 @@ provisioner:
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
     verify: ${MOLECULE_PLAYBOOK_VERIFY:-verify.yml}
+    cleanup: ${MOLECULE_PLAYBOOK_CLEANUP:-cleanup.yml}
   config_options:
     defaults:
       roles_path: "../../../"

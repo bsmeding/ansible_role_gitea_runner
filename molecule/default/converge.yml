@@ -9,6 +9,9 @@
     gitea_runner__gitea_token: 'molecule-test-token'
     docker_service_manage: false
     docker_add_repo: false
+    # GitHub Actions runner is UID/GID 1001; match so bind mounts are prunable (optional locally).
+    docker_uid: "{{ lookup('env', 'MOLECULE_DOCKER_UID') | default('1040', true) | int }}"
+    docker_gid: "{{ lookup('env', 'MOLECULE_DOCKER_GID') | default('1040', true) | int }}"
     # Pin image so docker_container does not report change when :latest resolves differently between runs.
     gitea_runner__image: gitea/act_runner:0.2.11
   pre_tasks:

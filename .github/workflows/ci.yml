@@ -72,3 +72,6 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
+          # Align bind-mount ownership with the runner user so Molecule prune can remove ~/.ansible/tmp/...
+          MOLECULE_DOCKER_UID: '1001'
+          MOLECULE_DOCKER_GID: '1001'
