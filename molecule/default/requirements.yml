@@ -3,6 +3,6 @@ roles:
   - name: bsmeding.docker
 collections:
   - name: community.docker
-    version: "4.8.7"
+    version: "5.2.0"
   - name: community.general
   - name: ansible.utils
