@@ -89,7 +89,7 @@ gitea_runner__network_mode: 'host'
 
 ## License
 
-MIT
+Apache-2.0
 
 ## Author Information
 
